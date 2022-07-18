@@ -1,4 +1,4 @@
-# quarkus-artemis Project
+# Quarkus, Artemis and Red Hat AMQ Broker on Openshift 4
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
