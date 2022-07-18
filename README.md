@@ -5,7 +5,14 @@ This project uses Quarkus, the Supersonic Subatomic Java Framework.
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 
 ## About
-A quarkus app to do a jms request to a clustered Red Hat AMQ Broker in Openshift 4. Red Hat AMQ is being deployed by using an Operator, simplifying the whole management and deployment.
+A quarkus app to do a jms pub/sub request to a clustered Red Hat AMQ Broker in Openshift 4. Red Hat AMQ is being deployed by using an Operator, simplifying the whole management and deployment.
+
+## Concept
+```
++--------------------------+      +--------------------+      +--------------------------+ 
+| Quarkus Artemis Producer | ---> | Red Hat AMQ Broker | ---> | Quarkus Artemis Consumer |
++--------------------------+      +--------------------+      +--------------------------+ 
+```
 
 ## Result
 ```
