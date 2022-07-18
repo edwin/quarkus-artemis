@@ -42,7 +42,7 @@ public class PriceConsumer implements Runnable {
                 if (message == null) return;
                 lastPrice = message.getBody(String.class);
 
-                System.out.println(">>>>>>>>>>>>>. "+lastPrice);
+                System.out.println(">>>>>>>>>>>>> "+lastPrice);
             }
         } catch (JMSException e) {
             throw new RuntimeException(e);
