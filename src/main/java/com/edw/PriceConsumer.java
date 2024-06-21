@@ -2,6 +2,9 @@ package com.edw;
 
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import io.smallrye.common.annotation.Identifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -18,12 +21,22 @@ import java.util.concurrent.Executors;
  * 18 Jul 2022 21:38
  */
 public class PriceConsumer implements Runnable {
+
     @Inject
-    ConnectionFactory connectionFactory;
+    ConnectionFactory connectionFactory_brokerURLService_00;
+
+    @Inject
+    ConnectionFactory connectionFactory_brokerURLService_01;
+
+    private Logger logger = LoggerFactory.getLogger(PriceConsumer.class);
+
+    public PriceConsumer(@Identifier("brokerURLService_00") ConnectionFactory connectionFactory_brokerURLService_00,
+                         @Identifier("brokerURLService_01") ConnectionFactory connectionFactory_brokerURLService_01) {
+        this.connectionFactory_brokerURLService_00 = connectionFactory_brokerURLService_00;
+        this.connectionFactory_brokerURLService_01 = connectionFactory_brokerURLService_01;
+    }
 
     private final ExecutorService scheduler = Executors.newSingleThreadExecutor();
-
-    private volatile String lastPrice;
 
     void onStart(@Observes StartupEvent ev) {
         scheduler.submit(this);
@@ -35,17 +48,34 @@ public class PriceConsumer implements Runnable {
 
     @Override
     public void run() {
-        try (JMSContext context = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)) {
-            JMSConsumer consumer = context.createConsumer(context.createQueue("prices"));
-            while (true) {
-                Message message = consumer.receive();
-                if (message == null) return;
-                lastPrice = message.getBody(String.class);
+        new Thread(() -> {
+            try (JMSContext context = connectionFactory_brokerURLService_00.createContext(JMSContext.AUTO_ACKNOWLEDGE)) {
+                JMSConsumer consumer = context.createConsumer(context.createQueue("prices"));
+                while (true) {
+                    Message message = consumer.receive();
+                    if (message == null) return;
+                    String uuid = message.getBody(String.class);
 
-                System.out.println(">>>>>>>>>>>>> "+lastPrice);
+                    logger.info(">>>>>>>> msg from broker 0 >>>>> {}", uuid);
+                }
+            } catch (JMSException e) {
+                throw new RuntimeException(e);
             }
-        } catch (JMSException e) {
-            throw new RuntimeException(e);
-        }
+        }).start();
+
+        new Thread(() -> {
+            try (JMSContext context = connectionFactory_brokerURLService_01.createContext(JMSContext.AUTO_ACKNOWLEDGE)) {
+                JMSConsumer consumer = context.createConsumer(context.createQueue("prices"));
+                while (true) {
+                    Message message = consumer.receive();
+                    if (message == null) return;
+                    String uuid = message.getBody(String.class);
+
+                    logger.info(">>>>>>>> msg from broker 1 >>>>> {}", uuid);
+                }
+            } catch (JMSException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
     }
 }
