@@ -97,6 +97,28 @@ Connection brokerURL = tcp://my-broker-ss-1.my-broker-hdls-svc.broker.svc.cluste
 Note: Use --clustered to expand the report to other nodes in the topology.
 ```
 
+## Testings
+
+### First Cycle
+using a Quarkus pod which consist of one Producer and one Consumer. Here we can see an uneven distribution of listeners.
+
+| # Quarkus Replica | # Producers | # Consumer | # Brokers | # Listeners on Broker 0 | # Listeners on Broker 1 |
+|-------------------|-------------|------------|-----------|-------------------------|-------------------------|
+| 1                 | 1           | 1          | 2         | 1                       | 0                       |
+| 2                 | 2           | 2          | 2         | 2                       | 0                       |
+| 4                 | 4           | 4          | 2         | 3                       | 1                       |
+| 6                 | 6           | 6          | 2         | 2                       | 4                       |
+
+### Second Cycle
+using a Quarkus pod which consist of one Producer and two Consumers with each consumer pointing to a different broker. We can see that listeners are much more evenly distributed. 
+
+| # Quarkus Replica | # Producers | # Consumer | # Brokers | # Listeners on Broker 0 | # Listeners on Broker 1 |
+|-------------------|-------------|------------|-----------|-------------------------|-------------------------|
+| 1                 | 1           | 2          | 2         | 1                       | 1                       |
+| 2                 | 2           | 4          | 2         | 2                       | 2                       |
+| 4                 | 4           | 8          | 2         | 4                       | 4                       |
+| 6                 | 6           | 12         | 2         | 6                       | 6                       |
+
 ## Related Guides
 
 - Artemis JMS ([guide](https://quarkiverse.github.io/quarkiverse-docs/quarkus-artemis/dev/index.html)): Use JMS APIs to connect to ActiveMQ Artemis via its native protocol
